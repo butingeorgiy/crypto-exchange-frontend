@@ -1,13 +1,27 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    font-family: "SF Pro Display", sans-serif;
+
+    @apply tw-tracking-wider;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+    @apply tw-select-none tw-cursor-default;
+}
+
+@layer base {
+    a {
+        @apply tw-cursor-pointer;
+    }
+}
+
+@layer utilities {
+    .main-layout-bg {
+        background: linear-gradient(180deg, rgba(38, 34, 80, 0.65) 0%,
+        rgba(27, 25, 66, 0.85) 57.44%, #17163B 100%),
+        radial-gradient(105.83% 105.97% at -4.27% -4.8%, #141414 0%, #040311 100%);
+    }
 }
