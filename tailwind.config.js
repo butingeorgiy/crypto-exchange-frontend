@@ -24,13 +24,20 @@ module.exports = {
                 dark: '#1B193B'
             },
             gray: {
-                medium: '#4F5875'
+                DEFAULT: '#BBBBBB',
+                light: '#E6E7EB',
+                medium: '#4F5875',
+                extradark: '#333333'
             },
             red: {
                 DEFAULT: '#E63F3F'
             },
             green: {
                 DEFAULT: '#04DC00'
+            },
+            yellow: {
+                DEFAULT: '#ca8a04',
+                light: '#FDD608'
             }
         }),
         columns: {
@@ -82,6 +89,7 @@ module.exports = {
             12: '3rem',
             14: '3.5rem',
             16: '4rem',
+            18: '4.5rem',
             20: '5rem',
             24: '6rem',
             28: '7rem',
@@ -372,6 +380,7 @@ module.exports = {
             lg: ['1.125rem', { lineHeight: '1.75rem' }],
             xl: ['1.25rem', { lineHeight: '1.75rem' }],
             '2xl': ['1.5rem', { lineHeight: '2rem' }],
+            '2.5xl': ['1.68rem', { lineHeight: '2.15rem' }],
             '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
             '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
             '5xl': ['3rem', { lineHeight: '1' }],

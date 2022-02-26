@@ -3,7 +3,7 @@ const INIT_STATE = {
     initDataLoading: true
 };
 
-const generalReducer = (state = INIT_STATE, action) => {
+const reducer = (state = INIT_STATE, action) => {
     switch (action.type) {
         case 'STOP_INIT_LOADING':
             return {
@@ -20,4 +20,4 @@ const generalReducer = (state = INIT_STATE, action) => {
     }
 };
 
-export default generalReducer;
+export default reducer;

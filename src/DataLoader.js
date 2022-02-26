@@ -7,24 +7,47 @@ import { bindActionCreators } from 'redux';
 
 // Actions
 import { setDashboardItems, stopInitLoading } from './store/general/actions';
+import { setUserData } from './store/user/actions';
+import { setDirections } from './store/exchange/actoins';
+
+// Helpers
+import { errorToast } from './helpers/swal.helper';
 
 // Components
 import App from './App';
-import GlobalLoader from './components/general/GlobalLoader'
+import GlobalLoader from './components/general/GlobalLoader';
 
 class DataLoader extends Component {
-    componentDidMount() {
-        const { setDashboardItems, stopInitLoading } = this.props;
+    async componentDidMount() {
+        const { setDashboardItems, stopInitLoading, setUserData, setDirections } = this.props;
 
-        axios.get(`${process.env.REACT_APP_API_BASE_URL}/general`)
+        // General service data fetching
+        await axios.get('general')
             .then(({ data }) => {
                 setDashboardItems(data['rate_dashboard_items']);
+                setDirections(data['exchange_directions']);
+            })
+            .catch(async error => {
+                await errorToast(
+                    error.response?.data.message || error.message
+                );
+            });
 
-                stopInitLoading();
-            })
-            .catch(error => {
-                console.error(error);
-            })
+        // Authentication / user data fetching
+        await axios.get('users/current')
+            .then(({ data }) => setUserData(data))
+            .catch(async error => {
+                // Not show error toast else user is not authenticated
+                if (error.response.status === 401) {
+                    return;
+                }
+
+                await errorToast(
+                    error.response?.data.message || error.message
+                );
+            });
+
+        stopInitLoading();
     }
 
     render() {
@@ -34,14 +57,16 @@ class DataLoader extends Component {
     }
 }
 
-const mapStateToProps = ({ general }) => ({
+const mapStateToProps = ({ general, user }) => ({
     loading: general.initDataLoading
 });
 
 const mapDispatchToProps = dispatch => (
     bindActionCreators({
         setDashboardItems,
-        stopInitLoading
+        stopInitLoading,
+        setUserData,
+        setDirections
     }, dispatch)
 );
 

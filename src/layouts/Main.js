@@ -16,7 +16,7 @@ class Main extends Component {
 
         return (
             <div className="main-layout-bg">
-                <div className="tw-bg-no-repeat tw-bg-center" style={{ backgroundImage: 'url(./images/main-layout-bg.png)'}}>
+                <div className="tw-bg-no-repeat tw-bg-cover" style={{ backgroundImage: 'url(/images/main-layout-bg.png)'}}>
                     <Header />
                     { announcements }
                     { children }

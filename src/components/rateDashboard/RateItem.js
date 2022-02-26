@@ -20,7 +20,7 @@ class RateItem extends Component {
                 </div>
 
                 <div className="tw-flex tw-justify-between tw-mt-auto">
-                    <p className="tw-text-white tw-font-medium tw-leading-5">{ entity.cost }</p>
+                    <p className="tw-text-white tw-leading-5">{ entity.cost }</p>
 
                     <div className="tw-flex tw-items-center">
                         <img className="tw-w-2 tw-mr-1" src={`./images/icons/arrow-up-green.svg`} alt="Arrow Icon" />

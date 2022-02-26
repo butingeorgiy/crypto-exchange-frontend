@@ -11,7 +11,10 @@ import MainLayout from '../layouts/Main';
 import rateItemPresenter from '../presenters/rate-item.presenter';
 
 // Components
-import Dashboard from '../components/RateDashboard/Dashboard';
+import Dashboard from '../components/rateDashboard/Dashboard';
+import Partners from '../components/general/Partners';
+import BusinessNumbers from '../components/general/BusinessNumbers';
+import TransactionWrapper from '../components/transaction/TransactionWrapper';
 
 class Index extends Component {
     render() {
@@ -25,8 +28,9 @@ class Index extends Component {
         return (
             <MainLayout notifications={notifications}>
                 <Dashboard items={this.props.dashboardItems} />
-
-                <div style={{ height: '300px' }} />
+                <TransactionWrapper />
+                <Partners />
+                <BusinessNumbers />
             </MainLayout>
         );
     }

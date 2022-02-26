@@ -2,7 +2,7 @@ const presenter = payload => {
     try {
         return Array.isArray(payload) ? parseMany(payload) : parseOne(payload);
     } catch (error) {
-        console.error('Failed to parse rate item.');
+        console.error('Failed to parse rate item. Error Instance: ', error);
 
         return [];
     }

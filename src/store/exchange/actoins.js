@@ -1,0 +1,1 @@
+export const setDirections = payload => ({ type: 'SET_DIRECTIONS', payload});
