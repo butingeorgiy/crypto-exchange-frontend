@@ -1,8 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 
 // Redux
 import { connect } from 'react-redux';
+
+// Helpers
+import { isFloat } from '../../../helpers/numeric.helper';
+import { errorToast } from '../../../helpers/swal.helper';
 
 // Components
 import GivenEntitySelect from './GivenEntitySelect';
@@ -44,10 +49,17 @@ class ChoosingPairStage extends Component {
             inverted: false,
 
             // is reversing allowed
-            invertingAllowed: true,
+            //invertingAllowed: props.directions[0]['inverting_allowed'],
+            invertingAllowed: false,
 
             // is it able to move to second transaction step
-            canContinue: false
+            canContinue: false,
+
+            // is it loading progress
+            loading: false,
+
+            // limits validation message
+            limitsMessage: null
         };
 
         this.onChangeGivenSelectHandler = this.onChangeGivenSelectHandler.bind(this);
@@ -140,33 +152,33 @@ class ChoosingPairStage extends Component {
     }
 
     /**
-     * Resolve entity item.
+     * Resolve direction.
      *
-     * @param id
-     * @param position available values: `given`, `received`
+     * IMPORTANT: method return False if pair not found.
+     *
+     * @param givenId
+     * @param receivedId
+     * @return {*[]}
      */
-    resolveEntityItem(id, position) {
-        let needleKey, entity = null;
+    resolveDirection(givenId, receivedId) {
+        const givenKey = this.state.inverted ? 'second_entity' : 'first_entity';
+        const receivedKey = this.state.inverted ? 'first_entity' : 'second_entity';
 
-        if (position === 'given' && this.state.inverted === false) {
-            needleKey = 'first_entity';
-        } else if (position === 'received' && this.state.inverted === false) {
-            needleKey = 'second_entity';
-        } else if (position === 'given' && this.state.inverted === true) {
-            needleKey = 'second_entity';
-        } else {
-            needleKey = 'first_entity';
-        }
+        let direction = false;
 
-        for (const direction of this.props.directions) {
-            if (direction[needleKey]['id'] === id) {
-                entity = direction[needleKey];
+        this.props.directions.forEach(item => {
+            if (item[givenKey]['id'] === givenId && item[receivedKey]['id'] === receivedId) {
+                const selectable = this.state.inverted ? item['inverting_allowed'] : true;
 
-                break;
+                direction = {
+                    given: { ...item[givenKey], selectable },
+                    received: { ...item[receivedKey], selectable },
+                    invertingAllowed: item['inverting_allowed']
+                };
             }
-        }
+        });
 
-        return entity;
+        return direction;
     }
 
     /**
@@ -176,19 +188,39 @@ class ChoosingPairStage extends Component {
      */
     onChangeGivenSelectHandler(id) {
         const receivedOptions = this.resolveReceivedOptions(id);
-        const givenItem = this.resolveEntityItem(id, 'given');
 
-        // todo: подключить инвертирование
+        if (!receivedOptions.length) {
+            errorToast('Failed to resolve received options. ' +
+                'Try to reload page or contact service\'s administrator.').then();
+
+            return;
+        }
+
+        // Если есть пара с уже выбранным элементом из
+        // списка "received", то метод вернет НЕ false
+        let direction = this.resolveDirection(
+            id,
+            this.state.receivedItem['id']
+        );
+
+        // Есть пары нет, то автоматически перескакиваем
+        // на первый элемент из списка "received"
+        if (direction === false) {
+            direction = this.resolveDirection(
+                id,
+                receivedOptions[0]['id']
+            );
+        }
 
         this.setState({
-            givenOptions: this.resolveGivenOptions(),
             receivedOptions,
-            givenItem,
-            receivedItem: receivedOptions[0],
-            givenAmount: givenItem['cost'],
-            receivedAmount: receivedOptions[0]['cost'],
-            givenCost: givenItem['cost'],
-            receivedCost: receivedOptions[0]['cost']
+            givenItem: direction['given'],
+            receivedItem: direction['received'],
+            givenAmount: direction['given']['cost'],
+            receivedAmount: direction['received']['cost'],
+            givenCost: direction['given']['cost'],
+            receivedCost: direction['received']['cost'],
+            //invertingAllowed: direction['invertingAllowed']
         });
     }
 
@@ -199,27 +231,50 @@ class ChoosingPairStage extends Component {
      */
     onChangeReceivedSelectHandler(id) {
         const givenOptions = this.resolveGivenOptions(id);
-        const receivedItem = this.resolveEntityItem(id, 'received');
 
-        // todo: подключить инвертирование
+        if (!givenOptions.length) {
+            errorToast('Failed to resolve given options. ' +
+                'Try to reload page or contact service\'s administrator.').then();
 
-        this.setState(prev => ({
+            return;
+        }
+
+        // Если есть пара с уже выбранным элементом из
+        // списка "given", то метод вернет НЕ false
+        let direction = this.resolveDirection(
+            this.state.givenItem['id'],
+            id
+        );
+
+        // Есть пары нет, то автоматически перескакиваем
+        // на первый элемент из списка "received"
+        if (direction === false) {
+            direction = this.resolveDirection(
+                givenOptions[0]['id'],
+                id
+            );
+        }
+
+        this.setState({
             givenOptions,
-            receivedItem,
-            //givenItem: givenOptions[0],
-            givenAmount: prev.givenItem['cost'],
-            receivedAmount: receivedItem['cost'],
-            givenCost: prev.givenItem['cost'],
-            receivedCost: receivedItem['cost']
-        }));
+            givenItem: direction['given'],
+            receivedItem: direction['received'],
+            givenAmount: direction['given']['cost'],
+            receivedAmount: direction['received']['cost'],
+            givenCost: direction['given']['cost'],
+            receivedCost: direction['received']['cost'],
+            //invertingAllowed: direction['invertingAllowed']
+        });
     }
 
     onChangeGivenAmountHandler(value) {
         const { givenCost, receivedCost } = this.state;
 
         this.setState({
-            givenAmount: value,
-            receivedAmount: receivedCost * value / givenCost
+            givenAmount: parseFloat(value.toFixed(2)),
+            receivedAmount: parseFloat((receivedCost * value / givenCost).toFixed(2))
+        }, _ => {
+            this.validatedAmounts();
         });
     }
 
@@ -227,34 +282,96 @@ class ChoosingPairStage extends Component {
         const { givenCost, receivedCost } = this.state;
 
         this.setState({
-            givenAmount: givenCost * value / receivedCost,
-            receivedAmount: value
+            givenAmount: parseFloat((givenCost * value / receivedCost).toFixed(2)),
+            receivedAmount: parseFloat(value.toFixed(2))
+        }, _ => {
+            this.validatedAmounts();
         });
     }
 
     /**
-     * Validate amounts
-     * @param given
-     * @param received
+     * Validate amounts.
      */
-    validatedAmounts(given, received) {
-        // todo: write method
+    validatedAmounts() {
+        const { givenItem, receivedItem, givenAmount, receivedAmount } = this.state;
 
-        return {
-            result: true,
-            message: null
-        };
+        if (givenAmount < givenItem['limits']['min']) {
+            this.setState({
+                canContinue: false,
+                limitsMessage: `Слишком маленькая сумма для ${givenItem['name']}. Минимальная сумма ${givenItem['limits']['min']}`
+            });
+        } else if (givenAmount > givenItem['limits']['max']) {
+            this.setState({
+                canContinue: false,
+                limitsMessage: `Слишком большая сумма для ${givenItem['name']}. Максимальная сумма ${givenItem['limits']['max']}`
+            });
+        } else if (receivedAmount < receivedItem['limits']['min']) {
+            this.setState({
+                canContinue: false,
+                limitsMessage: `Слишком маленькая сумма для ${receivedItem['name']}. Минимальная сумма ${receivedItem['limits']['min']}`
+            });
+        } else if (receivedAmount > receivedItem['limits']['max']) {
+            this.setState({
+                canContinue: false,
+                limitsMessage: `Слишком большая сумма для ${receivedItem['name']}. Максимальная сумма ${receivedItem['limits']['max']}`
+            });
+        } else {
+            this.setState({
+                canContinue: true,
+                limitsMessage: null
+            });
+        }
     }
 
-    moveToNextStep() {
-        if (this.state.canContinue === false) {
+    async moveToNextStep() {
+        if (!this.state.canContinue || this.state.loading) {
             return;
         }
 
-        // todo: write method
+        this.setState({ loading: true });
+
+        const data = {
+            'given_entity_id': this.state.givenItem.id,
+            'received_entity_id': this.state.receivedItem.id,
+            'inverted': this.state.inverted ? '1' : '0'
+        };
+
+        if (isFloat(this.state.givenAmount) === false) {
+            data['given_entity_amount'] = this.state.givenAmount;
+        } else {
+            data['received_entity_amount'] = this.state.receivedAmount;
+        }
+
+        await axios.post('transactions/prepare', data)
+            .then(({ data } ) => {
+                this.props.moveOnSecondStep(
+                    data['transaction_uuid'],
+                    data['transaction_type'],
+                    {
+                        givenItem: this.state.givenItem,
+                        receivedItem: this.state.receivedItem,
+                        givenAmount: this.state.givenAmount,
+                        receivedAmount: this.state.receivedAmount
+                    }
+                );
+            })
+            .catch(error => {
+                errorToast(error.response?.data.message || error.message);
+            })
+            .finally(_ => {
+                this.setState({ loading: false });
+            })
     }
 
     render() {
+        let buttonStyles = 'tw-flex tw-items-center tw-px-8 tw-text-white tw-font-light tw-bg-blue tw-rounded-md';
+
+        if (this.state.canContinue === false) {
+            buttonStyles += ' tw-opacity-50 tw-cursor-not-allowed';
+        } else if (this.state.loading === true) {
+            buttonStyles += ' tw-opacity-50 tw-cursor-progress';
+        }
+
         return (
             <div className="tw-container tw-mx-auto tw-py-8 tw-px-5">
                 <div className="tw-flex">
@@ -280,9 +397,7 @@ class ChoosingPairStage extends Component {
                                               onSelectChangeHandler={this.onChangeReceivedSelectHandler} />
                     </div>
 
-                    <button className={`tw-flex tw-items-center tw-px-8 tw-text-white tw-font-light tw-bg-blue 
-                                      tw-rounded-md ${this.state.canContinue ? '' : 'tw-opacity-50 tw-cursor-not-allowed'}`}
-                            onClick={_ => this.moveToNextStep()}>
+                    <button className={buttonStyles} onClick={_ => this.moveToNextStep()} title={this.state.limitsMessage}>
                         Обменять
 
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor"
@@ -299,7 +414,8 @@ class ChoosingPairStage extends Component {
 }
 
 ChoosingPairStage.propTypes = {
-    directions: PropTypes.array
+    directions: PropTypes.array,
+    moveOnSecondStep: PropTypes.func
 };
 
 const mapStateToProps = ({ exchange }) => ({

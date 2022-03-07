@@ -1,15 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-// Components
-import NumberFormat from 'react-number-format';
-
 class GivenEntitySelect extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            dropdownVisible: true
+            dropdownVisible: false
         };
     }
 
@@ -43,8 +40,9 @@ class GivenEntitySelect extends Component {
 
             return (
                 <div key={option.id} className={className} onClick={onClickHandler}>
-                    <div className={`tw-w-10 tw-h-10 tw-mr-4 tw-bg-cover tw-bg-center tw-bg-no-repeat tw-rounded-full ${disabled ? 'tw-opacity-50' : ''}`}
-                         style={{ backgroundImage: `url(${option.icon})` }} />
+                    <div
+                        className={`tw-w-10 tw-h-10 tw-mr-4 tw-bg-cover tw-bg-center tw-bg-no-repeat tw-rounded-full ${disabled ? 'tw-opacity-50' : ''}`}
+                        style={{ backgroundImage: `url(${option.icon})` }} />
 
                     <div className={`tw-flex tw-flex-col ${disabled ? 'tw-opacity-50' : ''}`}>
                         <p className="tw-text-white">{option.name}</p>
@@ -59,6 +57,12 @@ class GivenEntitySelect extends Component {
         const { item, amount, onAmountChangeHandler } = this.props;
 
         const dropdownContent = this.prepareOptionsRendering();
+
+        const onInputHandler = value => {
+            onAmountChangeHandler(
+                parseFloat(parseFloat(value).toFixed(2))
+            );
+        };
 
         return (
             <div className="tw-relative tw-flex-1 tw-flex tw-flex-col">
@@ -83,13 +87,12 @@ class GivenEntitySelect extends Component {
                         </div>
                     </div>
 
-                    <NumberFormat thousandSeparator=" " decimalScale={2}
-                                  allowNegative={false} value={amount}
-                                  onValueChange={e => onAmountChangeHandler(e.floatValue || 0)}
-                                  placeholder="Укажите сумму"
-                                  className="tw-w-40 tw-px-2 tw-py-1.5 tw-text-right tw-text-sm tw-text-white tw-font-light
-                                             tw-bg-white tw-bg-opacity-0 tw-border tw-border-white tw-border-opacity-40
-                                             tw-rounded-md focus:tw-outline-none" />
+                    <input value={amount} placeholder="Укажите сумму"
+                           onInput={e => onInputHandler(e.target['value'] || 0)}
+                           className="tw-w-40 tw-px-2 tw-py-1.5 tw-text-right tw-text-sm tw-text-white tw-font-light
+                                     tw-bg-white tw-bg-opacity-0 tw-border tw-border-white tw-border-opacity-40
+                                     tw-rounded-md focus:tw-outline-none" />
+
                     <p className="tw-ml-3 tw-text-white tw-font-light">{item.alias}</p>
                 </div>
 

@@ -55,6 +55,10 @@ body {
         radial-gradient(105.83% 105.97% at -4.27% -4.8%, #141414 0%, #040311 100%);
     }
 
+    .entity-wrapper-gradient-bg {
+        background: linear-gradient(241.25deg, rgba(50, 48, 89, 0.7) 4.4%, rgba(41, 39, 84, 0.329) 61.77%, rgba(88, 88, 88, 0.245) 119.94%);
+    }
+
     .profile-navbar {
         @apply tw-bg-blue-dark tw-rounded-md tw-overflow-hidden;
     }
