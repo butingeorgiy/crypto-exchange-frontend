@@ -12,6 +12,7 @@ import { Route, Routes } from 'react-router-dom';
 import IndexPage from './pages/Index';
 import ProfilePage from './pages/profile/Index';
 import SecureSettingsPage from './pages/profile/SecureSettings';
+import TransactionHistoryPage from './pages/profile/TransactionsHistory';
 import VerificationPage from './pages/profile/Verification';
 import TransferPage from './pages/Transfer';
 import HelpPage from './pages/Help';
@@ -42,6 +43,10 @@ class App extends Component {
                 <Route exact
                        path="/profile/secure-settings"
                        element={<ProtectedRoute><SecureSettingsPage /></ProtectedRoute>} />
+
+                <Route exact
+                       path="/profile/history"
+                       element={<ProtectedRoute><TransactionHistoryPage /></ProtectedRoute>} />
 
                 {verificationRoute}
 

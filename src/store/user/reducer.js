@@ -1,5 +1,6 @@
 const INIT_STATE = {
-    user: null
+    user: null,
+    transactionsHistory: null
 };
 
 const reducer = (state = INIT_STATE, action) => {
@@ -21,6 +22,16 @@ const reducer = (state = INIT_STATE, action) => {
             return {
                 ...state,
                 user: null
+            };
+        case 'SET_TRANSACTIONS_HISTORY':
+            return {
+                ...state,
+                transactionsHistory: action.payload
+            };
+        case 'UNSET_TRANSACTIONS_HISTORY':
+            return {
+                ...state,
+                transactionsHistory: null
             };
         default:
             return state;
